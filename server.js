@@ -23,7 +23,8 @@ app.use(
 // Configurer multer pour gérer l'upload de fichiers
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); // Dossier de stockage
+
+    cb(null, "uploads/"); // Dossier de stockage des fichiers audio
   },
   filename: function (req, file, cb) {
     cb(null, file.fieldname + "-" + Date.now() + ".webm"); // Nommer les fichiers .webm
@@ -35,21 +36,13 @@ const upload = multer({ storage: storage });
 // Fonction pour envoyer le fichier à OpenAI
 const sendToOpenAI = async (filePath) => {
   try {
-    // Lire le fichier audio
-    const audioFile = fs.createReadStream(filePath);
 
-    console.log(
-      "Fichier à envoyer à OpenAI :",
-      filePath,
-      "Taille:",
-      fs.statSync(filePath).size
-    );
+    const audioFile = fs.createReadStream(filePath);
 
     const formData = new FormData();
     formData.append("file", audioFile);
     formData.append("model", "whisper-1");
 
-    // Requête vers OpenAI Whisper API
     const response = await axios.post(
       "https://api.openai.com/v1/audio/transcriptions",
       formData,
@@ -60,16 +53,10 @@ const sendToOpenAI = async (filePath) => {
         },
       }
     );
-
-    console.log("Réponse OpenAI:", response.data);
-
+    
     return response.data.text;
   } catch (error) {
-    console.error(
-      "Erreur lors de l'envoi à OpenAI :",
-      error.response ? error.response.data : error.message
-    );
-    throw error;
+    throw new Error("Erreur lors de l'envoi à OpenAI : " + error.message);
   }
 };
 
@@ -78,34 +65,26 @@ app.post("/transcribe", upload.single("file"), async (req, res) => {
   try {
     const filePath = path.join(__dirname, req.file.path);
 
-    console.log("Fichier reçu :", req.file);
-    console.log("Chemin du fichier :", filePath);
-    console.log("Type MIME du fichier :", req.file.mimetype);
-
-    // Vérifier que le fichier est bien au format webm
     if (req.file.mimetype !== "audio/webm") {
       throw new Error("Le fichier n'est pas au format webm");
     }
 
-    // Envoyer le fichier à OpenAI directement
     const transcription = await sendToOpenAI(filePath);
 
-    // Retourner la transcription au client
+    // Retourner la transcription et l'URL de l'audio au client
     res.json({
       text: transcription,
+      audioUrl: `http://localhost:5015/uploads/${path.basename(filePath)}`, // URL pour l'audio
     });
   } catch (error) {
-    console.error(
-      "Erreur lors de la transcription :",
-      error.response ? error.response.data : error.message
-    );
-    res.status(500).json({
-      error: error.response
-        ? error.response.data
-        : "Erreur lors de la transcription",
-    });
+    res
+      .status(500)
+      .json({ error: "Erreur lors de la transcription : " + error.message });
   }
 });
+
+// Servir les fichiers audio depuis le dossier uploads
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Lancer le serveur
 app.listen(PORT, () => {
