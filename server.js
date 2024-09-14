@@ -23,6 +23,7 @@ app.use(
 // Configurer multer pour gérer l'upload de fichiers
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+
     cb(null, "uploads/"); // Dossier de stockage des fichiers audio
   },
   filename: function (req, file, cb) {
@@ -35,6 +36,7 @@ const upload = multer({ storage: storage });
 // Fonction pour envoyer le fichier à OpenAI
 const sendToOpenAI = async (filePath) => {
   try {
+
     const audioFile = fs.createReadStream(filePath);
 
     const formData = new FormData();
@@ -51,7 +53,7 @@ const sendToOpenAI = async (filePath) => {
         },
       }
     );
-
+    
     return response.data.text;
   } catch (error) {
     throw new Error("Erreur lors de l'envoi à OpenAI : " + error.message);
