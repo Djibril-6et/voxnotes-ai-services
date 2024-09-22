@@ -63,7 +63,6 @@ const sendToOpenAI = async (filePath) => {
 // Route POST pour recevoir et traiter le fichier audio
 app.post("/transcribe", upload.single("file"), async (req, res) => {
   try {
-    console.log("Received file:", req.file);
     const filePath = path.join(__dirname, req.file.path);
     const acceptedMimeTypes = ["audio/webm", "audio/mpeg", "audio/wav"];
 
