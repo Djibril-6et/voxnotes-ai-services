@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 5015;
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "*",
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -74,7 +74,7 @@ app.post("/transcribe", upload.single("file"), async (req, res) => {
     // Retourner la transcription et l'URL de l'audio au client
     res.json({
       text: transcription,
-      audioUrl: `http://localhost:5015/uploads/${path.basename(filePath)}`, // URL pour l'audio
+      audioUrl: `${process.env.IA_URL}/uploads/${path.basename(filePath)}`, // URL pour l'audio
     });
   } catch (error) {
     res
