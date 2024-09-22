@@ -64,8 +64,13 @@ const sendToOpenAI = async (filePath) => {
 app.post("/transcribe", upload.single("file"), async (req, res) => {
   try {
     const filePath = path.join(__dirname, req.file.path);
+    const acceptedMimeTypes = ["audio/webm", "audio/mpeg", "audio/wav"];
 
-    if (req.file.mimetype !== "audio/webm") {
+    if (!req.file) {
+      throw new Error("Aucun fichier n'a été téléchargé.");
+    }
+
+    if (!acceptedMimeTypes.includes(req.file.mimetype)) {
       throw new Error("Le fichier n'est pas au format webm");
     }
 
