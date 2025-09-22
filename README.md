@@ -53,6 +53,13 @@ IA_URL=http://localhost:9040
 mkdir uploads
 ```
 
+## 🤝 Integration with Other Services
+
+This service typically integrates with:
+- **Database Service:** Store transcription results
+- **[Frontend Application](https://github.com/Djibril-6et/voxnotes):** Receive audio files from users on port 9010
+- **File Storage Service:** Long-term audio storage (if needed)
+
 ## 🚀 Running the Service
 
 ### Development/Production Mode
