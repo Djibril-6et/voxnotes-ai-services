@@ -31,8 +31,8 @@ OpenAI Whisper integration microservice handling audio processing, speech-to-tex
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
-cd ai-service
+git clone https://github.com/Djibril-6et/voxnotes-ai-services.git
+cd voxnotes-ai-services
 ```
 
 2. **Install dependencies**
