@@ -12,6 +12,13 @@ const FormData = require("form-data");
 const app = express();
 const PORT = process.env.PORT || 5015;
 
+// Créer le dossier uploads s'il n'existe pas
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Dossier uploads créé');
+}
+
 app.use(
   cors({
     origin: "*",
@@ -23,7 +30,6 @@ app.use(
 // Configurer multer pour gérer l'upload de fichiers
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-
     cb(null, "uploads/"); // Dossier de stockage des fichiers audio
   },
   filename: function (req, file, cb) {
@@ -36,9 +42,7 @@ const upload = multer({ storage: storage });
 // Fonction pour envoyer le fichier à OpenAI
 const sendToOpenAI = async (filePath) => {
   try {
-
     const audioFile = fs.createReadStream(filePath);
-
     const formData = new FormData();
     formData.append("file", audioFile);
     formData.append("model", "whisper-1");
@@ -48,7 +52,7 @@ const sendToOpenAI = async (filePath) => {
       formData,
       {
         headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, // Utiliser la clé API depuis dotenv
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
           ...formData.getHeaders(),
         },
       }
@@ -79,9 +83,10 @@ app.post("/transcribe", upload.single("file"), async (req, res) => {
     // Retourner la transcription et l'URL de l'audio au client
     res.json({
       text: transcription,
-      audioUrl: `${process.env.IA_URL}/uploads/${path.basename(filePath)}`, // URL pour l'audio
+      audioUrl: `${process.env.IA_URL}/uploads/${path.basename(filePath)}`,
     });
   } catch (error) {
+    console.error("Erreur transcription:", error);
     res
       .status(500)
       .json({ error: "Erreur lors de la transcription : " + error.message });
